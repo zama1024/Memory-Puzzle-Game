@@ -3,7 +3,7 @@ class Card
 
   def initialize(value)
     @value = value
-    @up_or_down = up
+    @up_or_down = down
   end
 
   def down

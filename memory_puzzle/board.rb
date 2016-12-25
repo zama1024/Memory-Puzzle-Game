@@ -1,10 +1,13 @@
 require_relative "card"
 require "byebug"
+require "colorize"
+
 class Board
   attr_reader :grid
 
   def initialize(board_size = 8)
     @grid = create_grid(board_size)
+    self.populate
   end
 
   def create_grid(board_size)
@@ -27,16 +30,22 @@ class Board
   def render
     grid.each do |row|
       row.each do |cell|
-        print "| #{pad_numbers(cell.value)} "  if cell.up_or_down == cell.up
-        print "|  " if cell.up_or_down == cell.down
+        if cell.up_or_down == cell.up
+          print "| ".cyan
+          print "#{cell.value} ".light_red
+        else
+          print "|   ".cyan
+        end
       end
-      print "|\n"
-      print "-----------------------------------------\n"
+      print "|\n".cyan
+      print "#{"-" * grid.length * 4}-\n".cyan
     end
   end
 
   def pad_numbers(val)
-    if val < 10
+    if val == nil
+      return " "
+    elsif val < 10
       return "0" + val.to_s
     else
       return val.to_s
@@ -53,13 +62,17 @@ class Board
   end
 
   def reveal(pos)
-    grid[pos].reveal
-    grid[pos].value
+    self[pos].reveal
+    self[pos].value
+  end
+
+  def hide(pos)
+    self[pos].hide
   end
 
   def [](pos)
     x, y = pos
-    grid[x][y]
+    grid[Integer(x)][Integer(y)]
   end
 
   def []=(pos, val)
@@ -68,7 +81,3 @@ class Board
   end
 
 end
-
-play_board = Board.new
-play_board.populate
-play_board.render
