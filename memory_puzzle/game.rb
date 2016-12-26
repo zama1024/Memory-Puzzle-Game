@@ -12,41 +12,73 @@ class Game
   end
 
   def self.start_game
-    puts "Please enter an even number for board size: ".cyan
-    board_size = Integer(gets.chomp)
-    until board_size.even?
-      puts "Invalid size, please enter an even number:".light_red
-      board_size = Integer(gets.chomp)
-    end
+    board_size = Game.get_board_size
     game = Game.new(board_size)
     game.play_loop
   end
 
+  def self.get_board_size
+    puts "Please enter an even number for board size: ".cyan
+    board_size = Integer(gets.chomp)
+
+    until board_size.even?
+      puts "Invalid size, please enter an even number:".light_red
+      board_size = Integer(gets.chomp)
+    end
+    board_size
+  end
+
   def play_loop
     until game_over?
-      board.render
-      pos = player.make_guess
-      board.reveal(pos)
-      board.render
-      if player.first_guess == false
-        sleep(2)
-      end
-      system("clear")
-      if player.first_guess == false
-        if board[pos].value != board[player.previously_guessed_position].value
-          board.hide(pos)
-          board.hide(player.previously_guessed_position)
-        end
-      end
-      if player.first_guess == true
-        player.first_guess = false
-      else
-         player.first_guess = true
-      end
+      pos = get_move
+      post_move_render(pos)
+      update_board(pos)
+      update_guess_number
       board.render
       system("clear")
     end
     puts "Yay! you have found all the matching cards!".light_magenta
+  end
+
+  def post_move_render(pos)
+    player.previously_guessed_position = pos if player.first_guess == true
+    board.reveal(pos)
+    board.render
+  end
+
+  def get_move
+    board.render
+    player.prompt
+    pos = player.get_input
+    check_if_valid_position(pos)
+  end
+
+  def update_board(pos)
+    if player.first_guess == false
+      sleep(2)
+      system("clear")
+      if board[pos].value != board[player.previously_guessed_position].value
+        board.hide(pos)
+        board.hide(player.previously_guessed_position)
+      end
+    end
+  end
+
+  def update_guess_number
+    if player.first_guess == true
+      player.first_guess = false
+    else
+       player.first_guess = true
+    end
+  end
+
+  def check_if_valid_position(pos)
+    until board[pos].up_or_down == board[pos].down
+      puts "Please enter a cell which is hidden"
+      player.prompt
+      pos = player.get_input
+    end
+    pos
   end
 
   def game_over?
