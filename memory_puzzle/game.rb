@@ -1,15 +1,14 @@
 require_relative "board"
 require_relative "card"
+require_relative "HumanPlayer"
 require "byebug"
 
 class Game
-  attr_reader :board
-  attr_accessor :previously_guessed_position, :first_guess
+  attr_reader :board, :player
 
   def initialize(board_size)
     @board = Board.new(board_size)
-    @previously_guessed_position = []
-    @first_guess = true
+    @player = HumanPlayer.new
   end
 
   def self.start_game
@@ -20,13 +19,32 @@ class Game
       board_size = Integer(gets.chomp)
     end
     game = Game.new(board_size)
-    game.board.render
     game.play_loop
   end
 
   def play_loop
     until game_over?
-      make_guess
+      board.render
+      pos = player.make_guess
+      board.reveal(pos)
+      board.render
+      if player.first_guess == false
+        sleep(2)
+      end
+      system("clear")
+      if player.first_guess == false
+        if board[pos].value != board[player.previously_guessed_position].value
+          board.hide(pos)
+          board.hide(player.previously_guessed_position)
+        end
+      end
+      if player.first_guess == true
+        player.first_guess = false
+      else
+         player.first_guess = true
+      end
+      board.render
+      system("clear")
     end
     puts "Yay! you have found all the matching cards!".light_magenta
   end
@@ -38,31 +56,6 @@ class Game
       end
     end
     true
-  end
-
-  def make_guess
-    if self.first_guess == true
-      puts "Please insert a position guess in the format => x, y"
-      pos = (gets.chomp).split(",")
-      board.reveal(pos)
-      board.render
-      self.first_guess = false
-      @previously_guessed_position = pos
-    else
-      puts "Please insert a position guess in the format => x, y"
-      pos = (gets.chomp).split(",")
-      board.reveal(pos)
-      board.render
-      sleep(2)
-      system("clear")
-      if board[pos].value != board[previously_guessed_position].value
-        board.hide(pos)
-        board.hide(previously_guessed_position)
-      end
-      board.render
-      @previously_guessed_position = []
-      self.first_guess = true
-    end
   end
 
 end
